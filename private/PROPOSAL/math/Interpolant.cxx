@@ -1310,6 +1310,116 @@ Interpolant::Interpolant(std::vector<double> x1, std::vector<double> x2, std::ve
 
 //----------------------------------------------------------------------------//
 //----------------------------------------------------------------------------//
+
+Interpolant::Interpolant(std::vector<double> x1, std::vector< std::vector<double> > x2, std::vector< std::vector<double> > y, int romberg1, bool rational1, bool relative1 , int romberg2, bool rational2, bool relative2)
+        : romberg_(1.)
+        , rombergY_(1.)
+        , iX_()
+        , iY_()
+        , c_()
+        , d_()
+        , max_(1.)
+        , xmin_(1.)
+        , xmax_(1.)
+        , step_(0)
+        , rational_(false)
+        , relative_(false)
+        , function1d_(NULL)
+        , function2d_(NULL)
+        , Interpolant_()
+        , row_(0)
+        , starti_(0)
+        , rationalY_(false)
+        , relativeY_(false)
+        , reverse_(false)
+        , self_(true)
+        , flag_(false)
+        , isLog_(false)
+        , logSubst_(false)
+        , precision_(0)
+        , worstX_(0)
+        , precision2_(0)
+        , worstX2_(0)
+        , precisionY_(0)
+        , worstY_(0)
+        , fast_(true)
+        , x_save_(1)
+        , y_save_(0)
+{
+
+    //TODO: Not sure what is happening in the romberg=0 case
+    if (romberg1 <= 0)
+    {
+        log_warn("romberg1 = %i must be > 0! setting to 1!", romberg1);
+        romberg1 = 1;
+    }
+
+    if (romberg2 <= 0)
+    {
+        log_warn("romberg2 = %i must be > 0! setting to 1!", romberg2);
+        romberg2 = 1;
+    }
+
+    InitInterpolant(std::min(x1.size(), y.size()),
+                    x1.at(0),
+                    x1.at(x1.size() - 1),
+                    romberg1,
+                    rational1,
+                    relative1,
+                    false,
+                    romberg1,
+                    rational1,
+                    relative1,
+                    false);
+
+    for(int i = 0; i < (int)x1.size(); i++){
+        if (x2[i].size() != y[i].size())
+        {
+            log_fatal("size of x2(%i) and y(%i) do not match!", (int)(x2[i].size()), (int)(y[i].size()));
+        }
+    }
+
+    if (x1.size() != y.size())
+    {
+        log_fatal("size of x1(%i) and y(%i) do not match!", (int)(x1.size()), (int)(y.size()));
+    }
+
+    if (x2.size() != x1.size())
+    {
+        log_fatal("size of x2(%i) and x1(%i) do not match!", (int)(x2.size()), (int)(x1.size()));
+    }
+
+
+    Interpolant_.resize((int)x1.size());
+
+    iY2_.resize(y.size());
+    for (int i = 0; i < (int)iY2_.size(); i++)
+    {
+        iY2_[i].resize(y[i].size());
+        for(int j=0; j < (int)iY2_[i].size(); j++){
+            iY2_.at(i).at(j) = y.at(i).at(j);
+        }
+    }
+
+    for (int i = 0; i < (int)x1.size(); i++)
+    {
+        iX_.at(i) = x1.at(i);
+        row_      = i;
+
+        Interpolant_.at(i) = new Interpolant(x2[i],
+                                             iY2_[i],
+                                             romberg2,
+                                             rational2,
+                                             relative2);
+
+        Interpolant_.at(i)->self_ = false;
+    }
+
+    precision2_ = 0;
+}
+
+//----------------------------------------------------------------------------//
+//----------------------------------------------------------------------------//
 //-------------------------operators and swap function------------------------//
 //----------------------------------------------------------------------------//
 //----------------------------------------------------------------------------//
