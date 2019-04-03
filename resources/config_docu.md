@@ -24,18 +24,27 @@ If the Output of the Secondaries should not only include the Stochastic energy l
 The `interpolation` parameter is an own json-object.
 This object can contain three parameters dealing with the interpolation tables.
 
-If the tables have been already build and PROPOSAL should just use them, PROPOSAL needs read permission.
-If there are no tables (or at least not ones with the desired particle properties) PROPOSAL builds the tables in the folder. Here PROPOSAL needs write permission.
+There are two kind of paths, that can be set; a path, where the program only requires reading permission and a path, where it requires writing permission.
+The argument can be a String, or a list of Strings.
+If the given String or the first String in the list fulfills the readable/writable requirement, it is set.If the first item in the list don't satisfy the requirement, the program is looking for the next and so on until it reaches the end of the list.
+If none of the given elements in the list or the given String is a valid path, then the program writes the tables in the memory.
+
+If both paths are valid, PROPOSAL first looks at the reading path.
+If the interpolation table file doesn't exist or is empty (e.g. if two instances are called in parallel and one process is already building the table but hasn't finished yet), PROPOSAL uses writing path.
+There it again looks, if the interpolation table file already exist or is not empty.
+If the tables have been already build PROPOSAL just uses them.
+If there are no tables (or at least not ones with the desired particle or medium properties) PROPOSAL builds the tables in the folder.
 If the String is empty, the Folder doesn't exists or PROPOSAL has no permission, the tables are stored in the cache.
 Note: The tables differ in the parameters given below, that are stored in the file name. For not too long file names, these values are hashed.
 
 It's also possible to do the calculations with integrations, but that increases the amount of time by around 4 orders of magnitude !!! This should just be used for tests and comparisons.The Interpolations are accurate enough. Note: The reason why integration is that much slower is that the interpolation used for propagation is near the surface, using already calculated numbers from 'lower' interpolations. When integrating, these integrals going 'deep' (up to 4 layers).
 
-| Keyword            | Type   | Default   | Description |
-| ------------------ | ------ | --------- | ----------- |
-| `do_interpolation` | Bool   | `True`    | Decides, whether to calculate with interpolations or integrations |
-| `path_to_tables`   | String | `""`      | path pointing to the folder with the interpolation tables |
-| `do_binary_tables` | Bool   | `True`   | Decides, whether the tables are stored in binary format or in human readable text format |
+| Keyword                   | Type   | Default | Description |
+| ------------------------- | ------ | ------- | ----------- |
+| `do_interpolation`        | Bool   | `True`  | Decides, whether to calculate with interpolations or integrations |
+| `path_to_tables`          | String | `""`    | path pointing to the folder with the interpolation tables |
+| `path_to_tables_readonly` | String | `""`    | path pointing to the folder with the interpolation tables |
+| `do_binary_tables`        | Bool   | `True`  | Decides, whether the tables are stored in binary format or in human readable text format |
 
 ### Accuracy parameters ###
 There are several parameters with which the precision or speed for advancing the particles can be adjusted.
@@ -62,23 +71,20 @@ There are several parametrizations defining the cross sections and further optio
 
 The cross section multiplier, available for each cross section, scales this cross section by its factor.
 
-For Ionization, there is just one parametrization, but for pair production, bremsstrahlung and nuclear interaction, it's possible to choose between multiple parametrizations.
+For **Ionization**, there is just one parametrization, but for pair production, bremsstrahlung and nuclear interaction, it's possible to choose between multiple parametrizations.
 
-The electron pair production parametrizations are:
+The **electron pair production** parametrizations are:
   - `"EpairKelnerKokoulinPetrukhin"` (Proc. 12th ICCR (1971), 2436) with corrections for the interaction with atomic electrons (Phys. Atom. Nucl. 61 (1998), 448)
   - `"EpairSandrockSoedingreksoRhode"` 
 
-The muon pair production (which is an optional process and per default disabled) parametrizations are:
-  - `"MupairKelnerKokoulinPetrukhin"` (Phys. Atom. Nucl. Vol. 63, No.9 (2000),  pp. 1603-1611, DOI: 10.1134/1.1312894)
-
-The bremsstrahlung parametrizations are:
+The **bremsstrahlung** parametrizations are:
   - `"BremsKelnerKokoulinPetrukhin"` ([Preprint MEPhI (1995) no. 024-95](http://cds.cern.ch/record/288828)) and (Phys. Atom. Nucl. 62 (1999), 272)
   - `"BremsAndreevBezrukovBugaev"` (Phys. Atom. Nucl. 57 (1994), 2066)
   - `"BremsPetrukhinShestakov"` (Canad. J. Phys. 46 (1968), 377)
   - `"BremsCompleteScreening"` taken from Tsai [Rev. Mod. Phys. 46 (1974), 815](https://doi.org/10.1103/RevModPhys.46.815)
   - `"BremsSandrockSoedingreksoRhode"`
 
-There are two different approaches to parametrise the nuclear interaction:
+There are two different approaches to parametrise the **nuclear interaction**:
 
 Either with the approximation where a real photon scatters inelastically with a nucleus with an additional factor to make the photon virtual.
 The available parametrizations using this approach are:
@@ -101,23 +107,27 @@ For these parametrizations the parametrization of the shadowing factor can be ch
 - `"ShadowButkevichMikhailov"` from their calculation of nuclear interaction
 - `"ShadowDuttaRenoSarcevicSeckel"` by Dutta, Reno, Sarcevic, Seckel [Phys. Rev. D63 (2001), 094020](https://doi.org/10.1103/PhysRevD.63.094020)
 
-The LPM effect (Landau-Pomeranschuk-Migdal), suppressing the bremsstrahlung and the pair production at high energies and the Ter-Mikaelian effect, suppress low bremsstrahlung energy losses, can also be incorporated.
+The **LPM effect** (Landau-Pomeranschuk-Migdal), suppressing the bremsstrahlung and the pair production at high energies and the Ter-Mikaelian effect, suppress low bremsstrahlung energy losses, can also be incorporated.
 
-| Keyword                | Type   | Default    | Description |
-| ---------------------- | ------ | ---------- | ----------- |
-| `brems_multiplier`     | Double | `1.0`        | scales the bremsstrahlung |
-| `epair_multiplier`     | Double | `1.0`        | scales the electron pair production |
-| `mupair_multiplier`    | Double | `1.0`        | scales the muon pair production |
-| `ioniz_multiplier`     | Double | `1.0`        | scales the ionization |
-| `photo_multiplier`     | Double | `1.0`        | scales the nuclear interaction |
-| `epair`                | String | `"EpairKelnerKokoulinPetrukhin"` | electron pair production parametrization |
-| `epair`                | String | `"MupairKelnerKokoulinPetrukhin"` | muon pair production parametrization |
-| `brems`                | String | `"BremsKelnerKokoulinPetrukhin"` | Bremsstrahlung parametrization |
-| `photo`                | String | `"PhotoAbramowiczLevinLevyMaor97"` | nuclear interaction parametrization |
-| `photo_hard_component` | Bool   | `True`     | including the hard components |
-| `photo_shadow`         | String | `"ShadowButkevichMikhailov"` | shadowing parametrization |
-| `lpm`                  | Bool   | `True`     | Incorporate the LPM-effect and TM-effect |
-| `mupair_enable`        | Bool   | `False`     | Include production of muon pairs in the calculation of energy losses |
+The **muon pair production** (which is an optional process and per default disabled) parametrizations are:
+  - `"MupairKelnerKokoulinPetrukhin"` (Phys. Atom. Nucl. Vol. 63, No.9 (2000),  pp. 1603-1611, DOI: 10.1134/1.1312894)
+
+| Keyword                 | Type   | Default    | Description |
+| ----------------------  | ------ | ---------- | ----------- |
+| `brems_multiplier`      | Double | `1.0`        | scales the bremsstrahlung |
+| `epair_multiplier`      | Double | `1.0`        | scales the electron pair production |
+| `ioniz_multiplier`      | Double | `1.0`        | scales the ionization |
+| `photo_multiplier`      | Double | `1.0`        | scales the nuclear interaction |
+| `mupair_multiplier`     | Double | `1.0`        | scales the muon pair production |
+| `epair`                 | String | `"EpairKelnerKokoulinPetrukhin"` | electron pair production parametrization |
+| `epair`                 | String | `"MupairKelnerKokoulinPetrukhin"` | muon pair production parametrization |
+| `brems`                 | String | `"BremsKelnerKokoulinPetrukhin"` | Bremsstrahlung parametrization |
+| `photo`                 | String | `"PhotoAbramowiczLevinLevyMaor97"` | nuclear interaction parametrization |
+| `photo_hard_component`  | Bool   | `True`     | including the hard components |
+| `photo_shadow`          | String | `"ShadowButkevichMikhailov"` | shadowing parametrization |
+| `lpm`                   | Bool   | `True`     | Incorporate the LPM-effect and TM-effect |
+| `mupair_enable`         | Bool   | `False`     | Include production of muon pairs in the calculation of energy losses |
+| `mupair_particle_output`| Bool   | `True`     | Produced muon pairs are treated as Particles with corresponding energies in the Output of Secondaries (and not as DynamicData objects) |
 
 
 ### Energy-cut parameters ###
@@ -135,6 +145,7 @@ Note: The energy cuts and the continuous randomization settings can also be spec
 Then the global settings will be overwritten.
 
 For the `cuts_inside` option, the default values are
+
 | Keyword     | Type   | Default   | Description |
 | ----------- | ------ | --------- | ----------- |
 | `e_cut`     | Double | `500.0`   | total energy loss cut inside the detector |
@@ -142,6 +153,7 @@ For the `cuts_inside` option, the default values are
 | `cont_rand` | Bool   | `True`    | includes the continuous randomization inside the detector |
 
 For the `cuts_infront` option, the default values are
+
 | Keyword     | Type   | Default   | Description |
 | ----------- | ------ | --------- | ----------- |
 | `e_cut`     | Double | `-1.0`    | total energy loss cut in front the detector |
@@ -149,6 +161,7 @@ For the `cuts_infront` option, the default values are
 | `cont_rand` | Bool   | `True`    | includes the continuous randomization in front the detector |
 
 For the `cuts_behind` option, the default values are
+
 | Keyword     | Type   | Default   | Description |
 | ----------- | ------ | --------- | ----------- |
 | `e_cut`     | Double | `-1.0`    | total energy loss cut behind the detector |

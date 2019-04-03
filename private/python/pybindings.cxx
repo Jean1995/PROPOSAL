@@ -502,7 +502,8 @@ void init_parametrization(py::module& m)
         .value("PetrukhinShestakov", BremsstrahlungFactory::PetrukhinShestakov)
         .value("KelnerKokoulinPetrukhin", BremsstrahlungFactory::KelnerKokoulinPetrukhin)
         .value("CompleteScreening", BremsstrahlungFactory::CompleteScreening)
-        .value("AndreevBezrukovBugaev", BremsstrahlungFactory::AndreevBezrukovBugaev);
+        .value("AndreevBezrukovBugaev", BremsstrahlungFactory::AndreevBezrukovBugaev)
+        .value("SandrockSoedingreksoRhode", BremsstrahlungFactory::SandrockSoedingreksoRhode);
 
     py::class_<BremsstrahlungFactory::Definition, std::shared_ptr<BremsstrahlungFactory::Definition> >(m_sub_brems, "BremsDefinition")
         .def(py::init<>())
@@ -527,8 +528,8 @@ void init_parametrization(py::module& m)
     EPAIR_INTERPOL_DEF(m_sub_epair, SandrockSoedingreksoRhode)
 
     py::enum_<EpairProductionFactory::Enum>(m_sub_epair, "EpairParametrization")
-        .value("PetrukhinShestakov", EpairProductionFactory::KelnerKokoulinPetrukhin)
-        .value("KelnerKokoulinPetrukhin", EpairProductionFactory::SandrockSoedingreksoRhode);
+        .value("KelnerKokoulinPetrukhin", EpairProductionFactory::KelnerKokoulinPetrukhin)
+        .value("SandrockSoedingreksoRhode", EpairProductionFactory::SandrockSoedingreksoRhode);
 
     py::class_<EpairProductionFactory::Definition, std::shared_ptr<EpairProductionFactory::Definition> >(m_sub_epair, "EpairDefinition")
         .def(py::init<>())
@@ -685,6 +686,7 @@ void init_crosssection(py::module& m)
         .def("calculate_dNdx", (double (CrossSection::*)(double))&CrossSection::CalculatedNdx)
         .def("calculate_dNdx_rnd", (double (CrossSection::*)(double, double))&CrossSection::CalculatedNdx)
         .def("calculate_stochastic_loss", (double (CrossSection::*)(double, double, double))&CrossSection::CalculateStochasticLoss)
+        .def("calculate_produced_particles", &CrossSection::CalculateProducedParticles)
         .def_property_readonly("id", &CrossSection::GetTypeId)
         .def_property_readonly("parametrization", &CrossSection::GetParametrization);
 
@@ -823,6 +825,7 @@ PYBIND11_MODULE(pyPROPOSAL, m)
         .def(py::init<>())
         .def_readwrite("order_of_interpolation", &InterpolationDef::order_of_interpolation)
         .def_readwrite("path_to_tables", &InterpolationDef::path_to_tables)
+        .def_readwrite("path_to_tables_readonly", &InterpolationDef::path_to_tables_readonly)
         .def_readwrite("raw", &InterpolationDef::raw);
 
     // --------------------------------------------------------------------- //

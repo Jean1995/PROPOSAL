@@ -427,13 +427,21 @@ double Sector::Propagate(double distance)
                     for (unsigned int i = 0; i < cross_sections.size(); i++)
                     {
                         if(DynamicData::MuPair == cross_sections[i]->GetTypeId()){
-                            decay_products = cross_sections[i]->CalculateProducedParticles(final_energy, energy_loss.first);
+                            double rnd1 = RandomGenerator::Get().RandomDouble();
+                            double rnd2 = RandomGenerator::Get().RandomDouble();
+                            decay_products = cross_sections[i]->CalculateProducedParticles(
+                                    final_energy,
+                                    energy_loss.first,
+                                    rnd1,
+                                    rnd2);
+                          
                             for(unsigned int i=0; i<decay_products.size(); i++){
                                 // set additional properties for muon pair particles
                                 decay_products[i]->SetPosition(particle_.GetPosition());
                                 decay_products[i]->SetTime(particle_.GetTime());
                                 decay_products[i]->SetParentParticleEnergy(particle_.GetEnergy());
                             }
+
                             Output::getInstance().FillSecondaryVector(decay_products);
                             break;
                         }
