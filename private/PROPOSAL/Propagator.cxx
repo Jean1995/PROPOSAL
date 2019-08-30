@@ -1443,6 +1443,22 @@ Sector::Definition Propagator::CreateSectorDefinition(const std::string& json_ob
         log_debug("No given weak_multiplier option given. Use default (%f)", sec_def_global.utility_def.weak_def.multiplier);
     }
 
+    if (json_global.find("bhabhamoller_multiplier") != json_global.end())
+    {
+        if (json_global["bhabhamoller_multiplier"].is_number())
+        {
+            sec_def_global.utility_def.bhabhamoller_def.multiplier = json_global["bhabhamoller_multiplier"].get<double>();
+        }
+        else
+        {
+            log_fatal("The given bhabhamoller_multiplier option is not a double.");
+        }
+    }
+    else
+    {
+        log_debug("No given weak_multiplier option given. Use default (%f)", sec_def_global.utility_def.weak_def.multiplier);
+    }
+
     if (json_global.find("compton_multiplier") != json_global.end())
     {
         if (json_global["compton_multiplier"].is_number())
@@ -1490,6 +1506,22 @@ Sector::Definition Propagator::CreateSectorDefinition(const std::string& json_ob
     else
     {
         log_debug("No given lpm option given. Use default (true)");
+    }
+
+    if (json_global.find("bhabhamoller_threshold") != json_global.end())
+    {
+        if (json_global["bhabhamoller_threshold"].is_number())
+        {
+            sec_def_global.utility_def.bhabhamoller_def.threshold = json_global["bhabhamoller_threshold"].get<double>();
+        }
+        else
+        {
+            log_fatal("The given bhabhamoller_threshold option is not a double.");
+        }
+    }
+    else
+    {
+        log_debug("No given bhabhamoller_threshold option given. Use default (%f)", sec_def_global.utility_def.bhabhamoller_def.threshold);
     }
 
 
@@ -1715,6 +1747,24 @@ Sector::Definition Propagator::CreateSectorDefinition(const std::string& json_ob
     {
         log_debug("The weak option is not set. Use default %s",
                   WeakInteractionFactory::Get().GetStringFromEnum(sec_def_global.utility_def.weak_def.parametrization).c_str());
+    }
+
+    if (json_global.find("bhabhamoller") != json_global.end())
+    {
+        if (json_global["bhabhamoller"].is_string())
+        {
+            std::string bhabhamoller = json_global["bhabhamoller"].get<std::string>();
+            sec_def_global.utility_def.bhabhamoller_def.parametrization = BhabhaMollerFactory::Get().GetEnumFromString(bhabhamoller);
+        }
+        else
+        {
+            log_fatal("The given bhabhamoller option is not a string.");
+        }
+    }
+    else
+    {
+        log_debug("The bhabhamoller option is not set. Use default %s",
+                  BhabhaMollerFactory::Get().GetStringFromEnum(sec_def_global.utility_def.bhabhamoller_def.parametrization).c_str());
     }
 
     if (json_global.find("compton") != json_global.end())

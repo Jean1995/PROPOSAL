@@ -25,6 +25,7 @@ Utility::Definition::Definition()
     , mupair_def()
     , weak_def()
     , photopair_def()
+    , bhabhamoller_def()
 {
 }
 
@@ -45,6 +46,8 @@ bool Utility::Definition::operator==(const Utility::Definition& utility_def) con
     else if (weak_def != utility_def.weak_def)
         return false;
     else if (photopair_def != utility_def.photopair_def)
+        return false;
+    else if (bhabhamoller_def != utility_def.bhabhamoller_def)
         return false;
 
     return true;
@@ -107,6 +110,11 @@ Utility::Utility(const ParticleDef& particle_def,
         log_debug("Weak Interaction enabled");
     }
 
+    if(utility_def.bhabhamoller_def.parametrization!=BhabhaMollerFactory::Enum::None) {
+        crosssections_.push_back(BhabhaMollerFactory::Get().CreateBhabhaMoller(
+                particle_def_, *medium_, cut_settings_, utility_def.bhabhamoller_def));
+    }
+
     // Photon interactions
 
     if(utility_def.compton_def.parametrization!=ComptonFactory::Enum::None) {
@@ -167,6 +175,11 @@ Utility::Utility(const ParticleDef& particle_def,
         crosssections_.push_back(WeakInteractionFactory::Get().CreateWeakInteraction(
                     particle_def_, *medium_, utility_def.weak_def, interpolation_def));
         log_debug("Weak Interaction enabled");
+    }
+
+    if(utility_def.bhabhamoller_def.parametrization!=BhabhaMollerFactory::Enum::None) {
+        crosssections_.push_back(BhabhaMollerFactory::Get().CreateBhabhaMoller(
+                particle_def_, *medium_, cut_settings_, utility_def.bhabhamoller_def, interpolation_def));
     }
 
     // Photon interactions

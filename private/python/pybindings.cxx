@@ -557,7 +557,9 @@ void init_particle(py::module& m)
         .value("Hadrons", DynamicData::Hadrons)
         .value("ContinuousEnergyLoss", DynamicData::ContinuousEnergyLoss)
         .value("WeakInt", DynamicData::WeakInt)
-        .value("Compton", DynamicData::Compton);
+        .value("Compton", DynamicData::Compton)
+        .value("Bhabha", DynamicData::Bhabha)
+        .value("Moller", DynamicData::Moller);
 
     py::class_<DynamicData, std::shared_ptr<DynamicData>>(
             m_sub, 
@@ -1741,6 +1743,76 @@ void init_parametrization(py::module& m)
         .def_readwrite("parametrization", &IonizationFactory::Definition::parametrization)
         .def_readwrite("multiplier", &IonizationFactory::Definition::multiplier);
 
+    // --------------------------------------------------------------------- //
+    // Bhabha and Moller Scattering
+    // --------------------------------------------------------------------- //
+
+    py::module m_sub_bhabhamoller = m_sub.def_submodule("bhabhamoller");
+
+    py::class_<BhabhaMoller, std::shared_ptr<BhabhaMoller>, Parametrization>(m_sub_bhabhamoller, "BhabhaMoller",
+                                                                   R"pbdoc(
+
+            Virtual class for the Bhabha and Moller Scattering. They can be initialized by using one of the given parametrizations with the following parameters
+
+            Args:
+                particle_def (:meth:`~pyPROPOSAL.particle.ParticleDef`): includes all static particle information for the parametrization such as mass, charge, etc.
+                medium (:meth:`~pyPROPOSAL.medium`): includes all medium information for the parametrization such as densities or nucleon charges
+                energy_cuts (:meth:`~pyPROPOSAL.EnergyCutSettings`): energy cut setting for the parametrization
+                multiplier (double): Use a multiplicative factor for the differential crosssection. Can be used for testing or other studies
+                threshould (double): Lowest energy possible for a Bhabha or Moller scattering interaction. For lower transferred energies, the cross section can not be used anymore since atomic electrons can not be considered as free anymore
+
+            The following parametrizations are currently implemented:
+
+            * BhabhaScattering (for positrons)
+
+            * MollerScattering (for electrons)
+
+            Example:
+                To create a Bhabha scattering parametrization
+
+                >>> positron = pyPROPOSAL.particle.EPlusDef.get()
+                >>> medium = pyPROPOSAL.medium.StandardRock(1.0)
+                >>> cuts = pyPROPOSAL.EnergyCutSettings(-1, -1)
+                >>> param = pyPROPOSAL.parametrization.bhabhamoller.BhabhaScattering(positron, medium, cuts, 1.0, 1e-3)
+                )pbdoc");
+
+    py::class_<BhabhaScattering, std::shared_ptr<BhabhaScattering>, BhabhaMoller>(m_sub_bhabhamoller, "BhabhaScattering")
+            .def(py::init<const ParticleDef&, const Medium&, const EnergyCutSettings&, double, double>(),
+                 py::arg("particle_def"),
+                 py::arg("medium"),
+                 py::arg("energy_cuts"),
+                 py::arg("multiplier"),
+                 py::arg("threshold"));
+
+    py::class_<MollerScattering, std::shared_ptr<MollerScattering>, BhabhaMoller>(m_sub_bhabhamoller, "MollerScattering")
+            .def(py::init<const ParticleDef&, const Medium&, const EnergyCutSettings&, double, double>(),
+                 py::arg("particle_def"),
+                 py::arg("medium"),
+                 py::arg("energy_cuts"),
+                 py::arg("multiplier"),
+                 py::arg("threshold"));
+
+    py::enum_<BhabhaMollerFactory::Enum>(m_sub_bhabhamoller, "BhabhaMollerParametrization")
+            .value("BhabhaScattering", BhabhaMollerFactory::BhabhaScattering)
+            .value("MollerScattering", BhabhaMollerFactory::MollerScattering)
+            .value("None", BhabhaMollerFactory::None);
+
+    py::class_<BhabhaMollerFactory, std::unique_ptr<BhabhaMollerFactory, py::nodelete>>(m_sub_bhabhamoller, "BhabhaMollerFactory")
+            .def("get_enum_from_str", &BhabhaMollerFactory::GetEnumFromString, py::arg("parametrization_str"))
+            .def("create_bhabhamoller",
+                 (CrossSection* (BhabhaMollerFactory::*)(const ParticleDef&, const Medium&, const EnergyCutSettings&, const BhabhaMollerFactory::Definition&)const)&BhabhaMollerFactory::CreateBhabhaMoller,
+                 py::arg("particle_def"), py::arg("medium"), py::arg("ecuts"), py::arg("bhabhamoller_def"))
+            .def("create_compton_interpol",
+                 (CrossSection* (BhabhaMollerFactory::*)(const ParticleDef&, const Medium&, const EnergyCutSettings&, const BhabhaMollerFactory::Definition&, InterpolationDef)const)&BhabhaMollerFactory::CreateBhabhaMoller,
+                 py::arg("particle_def"), py::arg("medium"), py::arg("ecuts"), py::arg("bhabhamoller_def"), py::arg("interpolation_def"))
+            .def_static("get", &BhabhaMollerFactory::Get, py::return_value_policy::reference);
+
+    py::class_<BhabhaMollerFactory::Definition, std::shared_ptr<BhabhaMollerFactory::Definition> >(m_sub_bhabhamoller, "BhabhaMollerDefinition")
+            .def(py::init<>())
+            .def_readwrite("parametrization", &BhabhaMollerFactory::Definition::parametrization)
+            .def_readwrite("threshold", &BhabhaMollerFactory::Definition::threshold)
+            .def_readwrite("multiplier", &BhabhaMollerFactory::Definition::multiplier);
+
     // Photon interactions
 
     // --------------------------------------------------------------------- //
@@ -2058,11 +2130,13 @@ void init_crosssection(py::module& m)
     py::class_<MupairIntegral, std::shared_ptr<MupairIntegral>, CrossSectionIntegral>(m_sub, "MupairIntegral")
         .def(py::init<const MupairProduction&>(), py::arg("parametrization"));
     py::class_<WeakIntegral, std::shared_ptr<WeakIntegral>, CrossSectionIntegral>(m_sub, "WeakIntegral")
-            .def(py::init<const WeakInteraction&>(), py::arg("parametrization"));
+        .def(py::init<const WeakInteraction&>(), py::arg("parametrization"));
     py::class_<ComptonIntegral, std::shared_ptr<ComptonIntegral>, CrossSectionIntegral>(m_sub, "ComptonIntegral")
-            .def(py::init<const Compton&>(), py::arg("parametrization"));
+        .def(py::init<const Compton&>(), py::arg("parametrization"));
     py::class_<PhotoPairIntegral, std::shared_ptr<PhotoPairIntegral>, CrossSectionIntegral>(m_sub, "PhotoPairIntegral")
-            .def(py::init<const PhotoPairProduction&>(), py::arg("parametrization"));
+        .def(py::init<const PhotoPairProduction&>(), py::arg("parametrization"));
+    py::class_<BhabhaMollerIntegral, std::shared_ptr<BhabhaMollerIntegral>, CrossSectionIntegral>(m_sub, "BhabhaMollerIntegral")
+        .def(py::init<const BhabhaMoller&>(), py::arg("parametrization"));
 
     py::class_<BremsInterpolant, std::shared_ptr<BremsInterpolant>, CrossSectionInterpolant>(
         m_sub, "BremsInterpolant")
@@ -2086,8 +2160,11 @@ void init_crosssection(py::module& m)
         m_sub, "ComptonInterpolant")
         .def(py::init<const Compton&, InterpolationDef>(), py::arg("parametrization"), py::arg("interpolation_def"));
     py::class_<PhotoPairInterpolant, std::shared_ptr<PhotoPairInterpolant>, CrossSectionInterpolant>(
-            m_sub, "PhotoPairInterpolant")
-            .def(py::init<const PhotoPairProduction&, InterpolationDef>(), py::arg("parametrization"), py::arg("interpolation_def"));
+        m_sub, "PhotoPairInterpolant")
+        .def(py::init<const PhotoPairProduction&, InterpolationDef>(), py::arg("parametrization"), py::arg("interpolation_def"));
+    py::class_<BhabhaMollerInterpolant, std::shared_ptr<BhabhaMollerInterpolant>, CrossSectionInterpolant>(
+        m_sub, "BhabhaMollerInterpolant")
+        .def(py::init<const BhabhaMoller&, InterpolationDef>(), py::arg("parametrization"), py::arg("interpolation_def"));
 }
 
 void init_scattering(py::module& m)
@@ -2347,7 +2424,8 @@ PYBIND11_MODULE(pyPROPOSAL, m)
         .def_readwrite("mupair_def", &Utility::Definition::mupair_def)
         .def_readwrite("weak_def", &Utility::Definition::weak_def)
         .def_readwrite("compton_def", &Utility::Definition::compton_def)
-        .def_readwrite("photopair_def", &Utility::Definition::photopair_def);
+        .def_readwrite("photopair_def", &Utility::Definition::photopair_def)
+        .def_readwrite("bhabhamolle_def", &Utility::Definition::bhabhamoller_def);
 
 
     // --------------------------------------------------------------------- //

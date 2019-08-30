@@ -52,6 +52,8 @@ public:
         ContinuousEnergyLoss,
         WeakInt,
         Compton,
+        Bhabha,
+        Moller,
     };
 
 public:
