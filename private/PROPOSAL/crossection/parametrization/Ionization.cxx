@@ -21,12 +21,12 @@ Ionization::Ionization(const ParticleDef& particle_def,
                        const Medium& medium,
                        const EnergyCutSettings& cuts,
                        double multiplier)
-    : Parametrization(particle_def, medium, cuts, multiplier)
+        : Parametrization(particle_def, medium, cuts, multiplier)
 {
 }
 
 Ionization::Ionization(const Ionization& ioniz)
-    : Parametrization(ioniz)
+        : Parametrization(ioniz)
 {
 }
 
@@ -91,12 +91,12 @@ IonizBetheBlochRossi::IonizBetheBlochRossi(const ParticleDef& particle_def,
                                            const Medium& medium,
                                            const EnergyCutSettings& cuts,
                                            double multiplier)
-    : Ionization(particle_def, medium, cuts, multiplier)
+        : Ionization(particle_def, medium, cuts, multiplier)
 {
 }
 
 IonizBetheBlochRossi::IonizBetheBlochRossi(const IonizBetheBlochRossi& ioniz)
-    : Ionization(ioniz)
+        : Ionization(ioniz)
 {
 }
 
@@ -131,7 +131,9 @@ double IonizBetheBlochRossi::DifferentialCrossSection(double energy, double v)
     result = 1 - beta * (v / limits.vMax) + spin_1_2_contribution;
     result *= IONK * particle_def_.charge * particle_def_.charge * medium_->GetZA() / (2 * beta * energy * v * v);
 
-    return medium_->GetMassDensity() * result * (1 + InelCorrection(energy, v));
+    //return medium_->GetMassDensity() * result * (1 + InelCorrection(energy, v));
+    return medium_->GetMassDensity() * result;
+
     ;
 }
 
@@ -174,8 +176,9 @@ double IonizBetheBlochRossi::FunctionToDEdxIntegral(double energy, double variab
     else{
         return 0;
     }
-
-    return result / energy + variable * CrossSectionWithoutInelasticCorrection(energy, variable) * InelCorrection(energy, variable);
+    // For this thesis: Neglect inelastic bremsstrahlung correction
+    //return result / energy + variable * CrossSectionWithoutInelasticCorrection(energy, variable) * InelCorrection(energy, variable);
+    return result / energy;
 }
 
 // ------------------------------------------------------------------------- //
@@ -248,9 +251,9 @@ const std::string IonizBetheBlochRossi::name_ = "IonizBetheBlochRossi";
 // ------------------------------------------------------------------------- //
 
 IonizBergerSeltzerBhabha::IonizBergerSeltzerBhabha(const ParticleDef& particle_def,
-                                           const Medium& medium,
-                                           const EnergyCutSettings& cuts,
-                                           double multiplier)
+                                                   const Medium& medium,
+                                                   const EnergyCutSettings& cuts,
+                                                   double multiplier)
         : Ionization(particle_def, medium, cuts, multiplier)
 {
 }
@@ -347,7 +350,7 @@ double IonizBergerSeltzerBhabha::FunctionToDEdxIntegral(double energy, double va
     double y            = 1. / (gamma + 1.); // (2.263)
 
     aux = tau + 2 * bigDelta - (3. * bigDelta * bigDelta * y / 2.) - (bigDelta - std::pow(bigDelta, 3.) / 3.) * y * y
-            - (bigDelta * bigDelta / 2. - tau * std::pow(bigDelta, 3.) / 3. + std::pow(bigDelta, 4.) / 4.) * std::pow(y, 3.);
+          - (bigDelta * bigDelta / 2. - tau * std::pow(bigDelta, 3.) / 3. + std::pow(bigDelta, 4.) / 4.) * std::pow(y, 3.);
 
     aux *= betasquared / tau;
     fplus = std::log(tau * bigDelta) - aux;
@@ -429,7 +432,7 @@ double IonizBergerSeltzerMoller::DifferentialCrossSection(double energy, double 
     double betasquared = 1. - 1. / (gamma * gamma);
 
     aux = std::pow(gamma - 1., 2.) / (gamma * gamma) + 1. / epsilon * (1. / epsilon - (2. * gamma - 1.) / (gamma * gamma))
-            + 1. / (1. - epsilon) * (1. / (1. - epsilon) - (2. * gamma - 1.) / (gamma * gamma));
+          + 1. / (1. - epsilon) * (1. / (1. - epsilon) - (2. * gamma - 1.) / (gamma * gamma));
     aux = aux / betasquared;
 
     aux *= 1. / (gamma - 1.);

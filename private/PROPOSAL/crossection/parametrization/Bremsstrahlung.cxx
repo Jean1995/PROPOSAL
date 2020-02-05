@@ -45,22 +45,22 @@ Bremsstrahlung::Bremsstrahlung(const ParticleDef& particle_def,
                                const EnergyCutSettings& cuts,
                                double multiplier,
                                bool lpm)
-    : Parametrization(particle_def, medium, cuts, multiplier)
-    , lorenz_(false) // TODO(mario): make it use to enable Mon 2017/09/04
-    , lorenz_cut_(1e6)
-    , init_lpm_effect_(true)
-    , lpm_(lpm)
-    , eLpm_(0)
+        : Parametrization(particle_def, medium, cuts, multiplier)
+        , lorenz_(false) // TODO(mario): make it use to enable Mon 2017/09/04
+        , lorenz_cut_(1e6)
+        , init_lpm_effect_(true)
+        , lpm_(lpm)
+        , eLpm_(0)
 {
 }
 
 Bremsstrahlung::Bremsstrahlung(const Bremsstrahlung& brems)
-    : Parametrization(brems)
-    , lorenz_(brems.lorenz_)
-    , lorenz_cut_(brems.lorenz_cut_)
-    , init_lpm_effect_(brems.init_lpm_effect_)
-    , lpm_(brems.lpm_)
-    , eLpm_(brems.eLpm_)
+        : Parametrization(brems)
+        , lorenz_(brems.lorenz_)
+        , lorenz_cut_(brems.lorenz_cut_)
+        , init_lpm_effect_(brems.init_lpm_effect_)
+        , lpm_(brems.lpm_)
+        , eLpm_(brems.eLpm_)
 {
 }
 
@@ -120,7 +120,7 @@ Parametrization::IntegralLimits Bremsstrahlung::GetIntegralLimits(double energy)
 
     // The limit is taken from the Petrukhin/Shestakov Parametrization
     limits.vMax =
-        1 - 0.75 * SQRTE * (particle_def_.mass / energy) * std::pow(components_[component_index_]->GetNucCharge(), 1. / 3);
+            1 - 0.75 * SQRTE * (particle_def_.mass / energy) * std::pow(components_[component_index_]->GetNucCharge(), 1. / 3);
 
     if (limits.vMax < 0)
     {
@@ -164,9 +164,9 @@ double Bremsstrahlung::lpm(double energy, double v)
             Parametrization::IntegralLimits limits = GetIntegralLimits(upper_energy);
 
             sum += integral_temp.Integrate(
-                limits.vMin, limits.vUp, std::bind(&Bremsstrahlung::FunctionToDEdxIntegral, this, upper_energy, std::placeholders::_1), 2);
+                    limits.vMin, limits.vUp, std::bind(&Bremsstrahlung::FunctionToDEdxIntegral, this, upper_energy, std::placeholders::_1), 2);
             sum += integral_temp.Integrate(
-                limits.vUp, limits.vMax, std::bind(&Bremsstrahlung::FunctionToDEdxIntegral, this, upper_energy, std::placeholders::_1), 4);
+                    limits.vUp, limits.vMax, std::bind(&Bremsstrahlung::FunctionToDEdxIntegral, this, upper_energy, std::placeholders::_1), 4);
         }
 
         eLpm_ = ALPHA * (particle_def_.mass);
@@ -324,7 +324,7 @@ double BremsKelnerKokoulinPetrukhin::CalculateParametrization(double energy, dou
     double Dn = 1.54 * std::pow(components_[component_index_]->GetAtomicNum(), 0.27);
     // elastic atomic form factor (eq. 14)
     double formfactor_atomic_elastic =
-        std::log(1 + ME / (delta * SQRTE * components_[component_index_]->GetLogConstant() * Z3));
+            std::log(1 + ME / (delta * SQRTE * components_[component_index_]->GetLogConstant() * Z3));
     // elastic nuclear form factor (eq. 18)
     double formfactor_nuclear_elastic = std::log(Dn / (1 + delta * (Dn * SQRTE - 2) / particle_def_.mass));
 
@@ -337,8 +337,8 @@ double BremsKelnerKokoulinPetrukhin::CalculateParametrization(double energy, dou
     {
         // inelastic atomic contribution (eq. 26)
         formfactor_atomic_inelastic =
-            std::log(particle_def_.mass / (delta * (delta * particle_def_.mass / (ME * ME) + SQRTE))) -
-            std::log(1 + ME / (delta * SQRTE * components_[component_index_]->GetBPrime() * Z3 * Z3));
+                std::log(particle_def_.mass / (delta * (delta * particle_def_.mass / (ME * ME) + SQRTE))) -
+                std::log(1 + ME / (delta * SQRTE * components_[component_index_]->GetBPrime() * Z3 * Z3));
     }
 
     if (components_[component_index_]->GetNucCharge() != 1)
@@ -355,7 +355,7 @@ double BremsKelnerKokoulinPetrukhin::CalculateParametrization(double energy, dou
     result = ((4. / 3) * (1 - v) + v * v) * (std::log(particle_def_.mass / delta) - 0.5 // eq.3
                                              - formfactor_atomic_elastic - formfactor_nuclear_elastic +
                                              (formfactor_nuclear_inelastic + formfactor_atomic_inelastic) /
-                                                 components_[component_index_]->GetNucCharge());
+                                             components_[component_index_]->GetNucCharge());
 
     return result;
 }
@@ -578,19 +578,19 @@ double BremsSandrockSoedingreksoRhode::CalculateParametrization(double energy, d
 // ------------------------------------------------------------------------- //
 
 BremsElectronScreening::BremsElectronScreening(const ParticleDef& particle_def,
-                               const Medium& medium,
-                               const EnergyCutSettings& cuts,
-                               double multiplier,
-                               bool lpm)
+                                               const Medium& medium,
+                                               const EnergyCutSettings& cuts,
+                                               double multiplier,
+                                               bool lpm)
         : Bremsstrahlung(particle_def, medium, cuts, multiplier, lpm), interpolant_(NULL)
-    {
-        interpolant_ = new Interpolant(A_logZ, A_energies, A_correction, 2, false, false, 2, false, false);
-    }
+{
+    interpolant_ = new Interpolant(A_logZ, A_energies, A_correction, 2, false, false, 2, false, false);
+}
 
 BremsElectronScreening::BremsElectronScreening(const BremsElectronScreening& brems)
         : Bremsstrahlung(brems), interpolant_(new Interpolant(*brems.interpolant_))
-    {
-    }
+{
+}
 
 BremsElectronScreening::~BremsElectronScreening() {
     delete interpolant_;
@@ -656,7 +656,7 @@ double BremsElectronScreening::CalculateParametrization(double energy, double v)
     // Coulomb correction function and empirical correction factor
 
     double f_c;
-    double A_fac = interpolant_->InterpolateArray(logZ, energy);
+    double A_fac = interpolant_->InterpolateArray(logZ, energy - ME);
 
 
     aux = ALPHA * components_[component_index_]->GetNucCharge();
@@ -707,6 +707,8 @@ double BremsElectronScreening::CalculateParametrization(double energy, double v)
 
     if(energy < 50.) {
         f_c = 0;
+    } else{
+        A_fac = 1;
     }
 
     result = A_fac * components_[component_index_]->GetNucCharge() * (components_[component_index_]->GetNucCharge() + xi);
