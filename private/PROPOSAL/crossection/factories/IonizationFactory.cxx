@@ -14,6 +14,7 @@ IonizationFactory::IonizationFactory()
     , string_enum_()
 {
     Register("ionizbetheblochrossi", BetheBlochRossi, &IonizBetheBlochRossi::create);
+    Register("ionizbetheblochrossilo", BetheBlochRossiLO, &IonizBetheBlochRossiLO::create);
     Register("ionizbergerseltzerbhabha", IonizBergerSeltzerBhabha, &IonizBergerSeltzerBhabha::create);
     Register("ionizbergerseltzermoller", IonizBergerSeltzerMoller, &IonizBergerSeltzerMoller::create);
     Register("none", None, nullptr);

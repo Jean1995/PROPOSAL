@@ -922,6 +922,13 @@ void init_parametrization(py::module& m) {
              py::arg("energy_cuts"),
              py::arg("multiplier"));
 
+    py::class_<IonizBetheBlochRossiLO, std::shared_ptr<IonizBetheBlochRossiLO>, Ionization>(m_sub_ioniz, "BetheBlochRossiLO")
+            .def(py::init<const ParticleDef&, const Medium&, const EnergyCutSettings&, double>(),
+                 py::arg("particle_def"),
+                 py::arg("medium"),
+                 py::arg("energy_cuts"),
+                 py::arg("multiplier"));
+
     py::class_<IonizBergerSeltzerBhabha, std::shared_ptr<IonizBergerSeltzerBhabha>, Ionization>(m_sub_ioniz, "BergerSeltzerBhabha")
             .def(py::init<const ParticleDef&, const Medium&, const EnergyCutSettings&, double>(),
              py::arg("particle_def"),
@@ -938,6 +945,7 @@ void init_parametrization(py::module& m) {
 
     py::enum_<IonizationFactory::Enum>(m_sub_ioniz, "IonizParametrization")
             .value("BetheBlochRossi", IonizationFactory::BetheBlochRossi)
+            .value("BetheBlochRossiLO", IonizationFactory::BetheBlochRossiLO)
             .value("IonizBergerSeltzerBhabha", IonizationFactory::IonizBergerSeltzerBhabha)
             .value("IonizBergerSeltzerMoller", IonizationFactory::IonizBergerSeltzerMoller)
             .value("None", IonizationFactory::None);

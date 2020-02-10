@@ -82,6 +82,34 @@ private:
      static const std::string name_;
 };
 
+class IonizBetheBlochRossiLO : public Ionization
+{
+public:
+    IonizBetheBlochRossiLO(const ParticleDef&, const Medium&, const EnergyCutSettings&, double multiplier);
+    IonizBetheBlochRossiLO(const IonizBetheBlochRossiLO&);
+    ~IonizBetheBlochRossiLO();
+
+    Parametrization* clone() const { return new IonizBetheBlochRossiLO(*this); }
+    static Ionization* create(const ParticleDef& particle_def,
+                                    const Medium& medium,
+                                    const EnergyCutSettings& cuts,
+                                    double multiplier)
+        {
+            return new IonizBetheBlochRossiLO(particle_def, medium, cuts, multiplier);
+        }
+
+     IntegralLimits GetIntegralLimits(double energy);
+     double DifferentialCrossSection(double energy, double v);
+     double FunctionToDEdxIntegral(double energy, double v);
+
+     const std::string& GetName() const { return name_; }
+
+private:
+     double InelCorrection(double energy, double v);
+     double CrossSectionWithoutInelasticCorrection(double energy, double v);
+      static const std::string name_;
+};
+
 class IonizBergerSeltzerBhabha : public Ionization
 {
 public:

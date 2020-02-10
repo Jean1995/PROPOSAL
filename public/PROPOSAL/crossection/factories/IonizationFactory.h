@@ -52,6 +52,7 @@ public:
         Fail = 0,
         None,
         BetheBlochRossi,
+        BetheBlochRossiLO,
         IonizBergerSeltzerBhabha,
         IonizBergerSeltzerMoller,
     };
